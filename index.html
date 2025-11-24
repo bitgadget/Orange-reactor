@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ORANGE REACTOR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cyber: {
+                black: '#050505',
+                dark: '#0a0a0f',
+                orange: '#ff6600',
+                orangeDim: '#cc5200',
+                gray: '#1f1f2e',
+                text: '#e0e0e0'
+              }
+            },
+            fontFamily: {
+              mono: ['"Share Tech Mono"', 'monospace'],
+              display: ['"Orbitron"', 'sans-serif'],
+            },
+            animation: {
+              'spin-slow': 'spin 10s linear infinite',
+              'pulse-fast': 'pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'glitch': 'glitch 1s linear infinite',
+              'scanline': 'scanline 8s linear infinite',
+              'pulse-glow': 'pulse-glow 4s ease-in-out infinite',
+              'scan-fast': 'scan-vertical 1.5s linear infinite',
+              'grid-move': 'grid-move 20s linear infinite',
+              'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
+              'float': 'float 6s ease-in-out infinite',
+              'glitch-skew': 'glitch-skew 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite',
+              'glitch-idle': 'glitch-anim 4s infinite linear alternate-reverse',
+              'equalizer': 'equalizer 0.5s ease-in-out infinite alternate',
+              'noise': 'noise 0.2s steps(3) infinite',
+              'blink-random': 'blink 3s infinite',
+              'breathe': 'breathe 4s ease-in-out infinite',
+            },
+            keyframes: {
+              scanline: {
+                '0%': { transform: 'translateY(-100%)' },
+                '100%': { transform: 'translateY(100%)' }
+              },
+              'pulse-glow': {
+                '0%, 100%': { boxShadow: '0 0 5px rgba(255, 102, 0, 0.1)', borderColor: 'rgba(204, 82, 0, 0.5)' },
+                '50%': { boxShadow: '0 0 15px rgba(255, 102, 0, 0.3)', borderColor: 'rgba(255, 102, 0, 0.8)' }
+              },
+              'breathe': {
+                '0%, 100%': { opacity: '0.6' },
+                '50%': { opacity: '1' }
+              },
+              'scan-vertical': {
+                '0%': { transform: 'translateY(-100%)', opacity: '0' },
+                '50%': { opacity: '1' },
+                '100%': { transform: 'translateY(100%)', opacity: '0' }
+              },
+              'grid-move': {
+                '0%': { transform: 'translateY(0) translateY(0)' },
+                '100%': { transform: 'translateY(40px) translateY(40px)' }
+              },
+              'fade-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              'float': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' }
+              },
+              'glitch-skew': {
+                '0%': { transform: 'translate(0)' },
+                '20%': { transform: 'translate(-2px, 2px)' },
+                '40%': { transform: 'translate(-2px, -2px)' },
+                '60%': { transform: 'translate(2px, 2px)' },
+                '80%': { transform: 'translate(2px, -2px)' },
+                '100%': { transform: 'translate(0)' }
+              },
+              'glitch-anim': {
+                 '0%': { clipPath: 'inset(10% 0 80% 0)' },
+                 '20%': { clipPath: 'inset(80% 0 1% 0)' },
+                 '40%': { clipPath: 'inset(40% 0 20% 0)' },
+                 '60%': { clipPath: 'inset(10% 0 60% 0)' },
+                 '80%': { clipPath: 'inset(70% 0 10% 0)' },
+                 '100%': { clipPath: 'inset(30% 0 30% 0)' }
+              },
+              'equalizer': {
+                '0%': { height: '20%' },
+                '100%': { height: '100%' }
+              },
+              'noise': {
+                '0%': { transform: 'translate(0, 0)' },
+                '10%': { transform: 'translate(-5%, -5%)' },
+                '20%': { transform: 'translate(-10%, 5%)' },
+                '30%': { transform: 'translate(5%, -10%)' },
+                '40%': { transform: 'translate(-5%, 15%)' },
+                '50%': { transform: 'translate(-10%, 5%)' },
+                '60%': { transform: 'translate(15%, 0)' },
+                '70%': { transform: 'translate(0, 10%)' },
+                '80%': { transform: 'translate(-15%, 0)' },
+                '90%': { transform: 'translate(10%, 5%)' },
+                '100%': { transform: 'translate(5%, 0)' }
+              },
+              'blink': {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0.3' }
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #050505;
+        color: #e0e0e0;
+        overflow-x: hidden;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a0a0f; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #ff6600; 
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #cc5200; 
+      }
+      .crt-overlay {
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+      }
+      .cyber-grid {
+        background-size: 40px 40px;
+        background-image:
+          linear-gradient(to right, rgba(255, 102, 0, 0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 102, 0, 0.05) 1px, transparent 1px);
+        width: 100%;
+        height: 200%;
+        position: absolute;
+        top: -40px;
+        left: 0;
+        animation: grid-move 20s linear infinite;
+        z-index: 0;
+      }
+      .perspective-container {
+        perspective: 1000px;
+        overflow: hidden;
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .perspective-grid {
+        transform: rotateX(60deg) scale(2);
+        transform-origin: 50% 0%;
+      }
+      .noise-overlay {
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        right: -50%;
+        bottom: -50%;
+        width: 200%;
+        height: 200vh;
+        background: transparent url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.08"/%3E%3C/svg%3E');
+        animation: noise 0.2s infinite;
+        pointer-events: none;
+        z-index: 5;
+        opacity: 0.04;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
