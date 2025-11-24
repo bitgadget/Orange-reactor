@@ -51,6 +51,7 @@ export interface NetworkStats {
   difficulty: number; // in Trillions
   nextRetarget: number; // blocks remaining
   difficultyChange: number; // percent estimate
+  averageBlockTime: number; // minutes
   fees: {
     fast: number; // sat/vB
     hour: number;

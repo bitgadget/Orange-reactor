@@ -343,7 +343,7 @@ const App: React.FC = () => {
                         loading={isRefreshing}
                         className="flex-1 h-full min-h-[450px]"
                     >
-                        <div className="flex justify-end gap-2 mb-4 absolute top-6 right-6 z-20">
+                        <div className="w-full flex justify-end gap-2 mb-2 z-10 relative">
                           {(['24H', '7D', '30D'] as TimeFrame[]).map((tf) => (
                             <button
                               key={tf}
@@ -362,7 +362,7 @@ const App: React.FC = () => {
                             </button>
                           ))}
                         </div>
-                        <div className="flex-1 w-full pt-6">
+                        <div className="flex-1 w-full min-h-0">
                             <MarketChart data={chartData} theme={theme} />
                         </div>
                     </CyberContainer>

@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { NetworkStats, Theme, CoinData } from '../types';
-import { Server, Shield, Zap, Database, Clock, Info, PieChart as PieChartIcon, Cpu, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { Server, Shield, Zap, Database, Clock, Info, PieChart as PieChartIcon, Cpu, TrendingUp, TrendingDown, Activity, Wifi, ChevronRight } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Sector } from 'recharts';
 
 interface Props {
   stats: NetworkStats | null;
@@ -19,6 +19,15 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
   const diffChange = stats?.difficultyChange || 0;
   const isDiffIncreasing = diffChange > 0;
   const diffColor = isDiffIncreasing ? (isCyber ? 'text-red-500' : 'text-red-600') : (isCyber ? 'text-green-500' : 'text-green-600');
+
+  // Helper for Block Time Color (Standard is 10 mins)
+  const blockTime = stats?.averageBlockTime || 10;
+  const blockTimeDiff = 10 - blockTime;
+  const isBlockTimeNormal = Math.abs(blockTimeDiff) < 1;
+  const blockTimeColor = isBlockTimeNormal 
+      ? (isCyber ? 'text-green-500' : 'text-green-700') 
+      : (isCyber ? 'text-yellow-500' : 'text-yellow-700');
+
 
   // --- MEMPOOL VISUALIZATION LOGIC ---
   const mempoolSizeMB = stats ? stats.mempool.vBytes / 1_000_000 : 0;
@@ -70,6 +79,17 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
     '#f72585', // Pink
     '#3a0ca3', // Deep Blue
   ];
+
+  // Fee Calculation
+  const calculateUsdFee = () => {
+      if (!stats || !coinData) return "---";
+      const satVb = stats.fees.fast;
+      const btcPrice = coinData.bitcoin.usd;
+      // Assume standard SegWit tx ~140 vBytes
+      const costSats = satVb * 140;
+      const costUsd = (costSats / 100_000_000) * btcPrice;
+      return `$${costUsd.toFixed(2)}`;
+  };
 
   // Tooltip Component (Click-based)
   const Tooltip = ({ content }: { content: string }) => {
@@ -148,6 +168,34 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
              </div>
           </div>
       )
+  };
+
+  // Active shape for hover effect (scales slightly)
+  const renderActiveShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 8}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          className="drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 12}
+          outerRadius={outerRadius + 14}
+          fill={fill}
+        />
+      </g>
+    );
   };
 
   return (
@@ -252,27 +300,35 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
                     {stats ? `${stats.difficulty.toFixed(2)}T` : "---"}
                 </div>
                 
-                {/* Adjustment Prediction */}
-                <div className="mt-4 pt-4 border-t border-gray-800">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] text-gray-500">FORECAST ({stats?.nextRetarget} BLOCKS)</span>
-                        <span className={`text-xs font-bold ${diffColor}`}>
-                            {diffChange > 0 ? '+' : ''}{diffChange.toFixed(2)}%
-                        </span>
-                    </div>
-                    <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden flex">
-                        <div className="w-1/2 bg-transparent border-r border-gray-700 h-full relative">
-                             {/* Center marker */}
+                {/* Adjustment Prediction & Block Time */}
+                <div className="mt-4 pt-4 border-t border-gray-800 space-y-3">
+                    {/* Forecast Bar */}
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] text-gray-500">FORECAST ({stats?.nextRetarget} BLOCKS)</span>
+                            <span className={`text-xs font-bold ${diffColor}`}>
+                                {diffChange > 0 ? '+' : ''}{diffChange.toFixed(2)}%
+                            </span>
                         </div>
-                        {/* This visualization assumes center is 0 change. Simplified for visual effect */}
-                        <div 
-                            className={`h-full ${diffChange > 0 ? 'bg-red-500' : 'bg-green-500'}`} 
-                            style={{ 
-                                width: `${Math.min(Math.abs(diffChange) * 10, 50)}%`, // Scale for visibility
-                                marginLeft: diffChange > 0 ? '50%' : 'auto',
-                                marginRight: diffChange < 0 ? '50%' : 'auto'
-                            }} 
-                        />
+                        <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden flex">
+                            <div className="w-1/2 bg-transparent border-r border-gray-700 h-full relative" />
+                            <div 
+                                className={`h-full ${diffChange > 0 ? 'bg-red-500' : 'bg-green-500'}`} 
+                                style={{ 
+                                    width: `${Math.min(Math.abs(diffChange) * 10, 50)}%`, // Scale for visibility
+                                    marginLeft: diffChange > 0 ? '50%' : 'auto',
+                                    marginRight: diffChange < 0 ? '50%' : 'auto'
+                                }} 
+                            />
+                        </div>
+                    </div>
+
+                    {/* Avg Block Time Display */}
+                    <div className="flex justify-between items-center text-xs">
+                         <span className="text-[10px] text-gray-500 uppercase tracking-wide">Avg Block Time</span>
+                         <span className={`font-mono font-bold ${blockTimeColor}`}>
+                            {stats ? stats.averageBlockTime.toFixed(2) : "--"} MIN
+                         </span>
                     </div>
                 </div>
             </div>
@@ -366,6 +422,10 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
                         {stats ? stats.fees.fast : "-"}
                      </span>
                      <span className="text-xs text-gray-500">sat/vB</span>
+                     {/* Estimated USD Cost */}
+                     <span className={`text-xs ml-1 px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-mono`}>
+                        ≈ {calculateUsdFee()}
+                     </span>
                 </div>
                 
                  <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-2 gap-2 text-center">
@@ -382,31 +442,33 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
 
         </div>
 
-        {/* 5. MINING POOL DISTRIBUTION - CAKE CHART (ANIMATED) */}
-        <div className={`w-full p-4 border border-l-4 mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6 relative overflow-hidden
-             ${isCyber ? 'bg-cyber-dark/50 border-cyber-gray border-l-purple-500' : 'bg-zinc-900 border-zinc-800 border-l-zinc-500'}`}>
+        {/* 5. MINING POOL DISTRIBUTION - REIMAGINED */}
+        <div className={`w-full p-6 border border-l-4 mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 relative overflow-hidden group
+             ${isCyber ? 'bg-cyber-dark/60 border-cyber-gray border-l-purple-500 backdrop-blur-md' : 'bg-zinc-900 border-zinc-800 border-l-zinc-500'}`}>
              
-             {/* Background Tech Glow */}
+             {/* Background Tech Glow & Grid */}
              {isCyber && (
-                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                 <>
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-600/10 blur-[80px] rounded-full pointer-events-none animate-pulse" />
+                    <div className="absolute inset-0 opacity-5 pointer-events-none bg-[size:20px_20px] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)]" />
+                 </>
              )}
 
              {/* Chart Side */}
-             <div className="h-64 relative flex items-center justify-center">
+             <div className="h-[300px] relative flex items-center justify-center">
                  <div className="absolute top-0 left-0 text-[10px] font-bold tracking-widest text-gray-500 flex items-center gap-2 z-10">
                     HASHRATE_DISTRIBUTION (3D) <PieChartIcon size={12}/>
                  </div>
 
-                 {/* Animated Rotating Rings */}
+                 {/* Animated Rings - Modified */}
                  {isCyber && (
-                    <>
-                        {/* Outer Ring */}
-                        <div className="absolute w-[200px] h-[200px] border border-purple-500/20 rounded-full animate-[spin_12s_linear_infinite]" />
-                        {/* Inner Dashed Ring */}
-                        <div className="absolute w-[180px] h-[180px] border border-dashed border-purple-500/30 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
-                        {/* Core Pulse */}
-                        <div className="absolute w-[100px] h-[100px] bg-purple-500/5 rounded-full animate-pulse" />
-                    </>
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {/* Neon Pulsing Ring */}
+                        <div className="absolute w-[230px] h-[230px] rounded-full border-2 border-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.6)] animate-pulse opacity-80" />
+                        
+                        {/* Secondary Technical Ring (Subtle rotation) */}
+                        <div className="absolute w-[250px] h-[250px] border border-dashed border-purple-500/30 rounded-full animate-[spin_30s_linear_infinite]" />
+                    </div>
                  )}
 
                  <ResponsiveContainer width="100%" height="100%" className="relative z-10">
@@ -415,24 +477,24 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
                             data={(stats?.pools || []) as any[]}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
+                            innerRadius={70}
+                            outerRadius={95}
                             paddingAngle={2}
                             dataKey="share"
                             stroke="none"
+                            onMouseEnter={(_, index) => setActiveIndex(index)}
+                            onMouseLeave={() => setActiveIndex(null)}
+                            {...({ activeIndex: activeIndex !== null ? activeIndex : -1 } as any)}
+                            activeShape={isCyber ? renderActiveShape : undefined}
                             isAnimationActive={true}
-                            animationBegin={0}
-                            animationDuration={1500}
-                            animationEasing="ease-out"
                         >
                             {stats?.pools.map((entry, index) => {
-                                const isActive = activeIndex === index;
                                 return (
                                     <Cell 
                                         key={`cell-${index}`} 
                                         fill={POOL_COLORS[index % POOL_COLORS.length]} 
-                                        fillOpacity={activeIndex === null || isActive ? 1 : 0.3}
-                                        className="outline-none stroke-none transition-all duration-300"
+                                        fillOpacity={activeIndex === null || activeIndex === index ? 1 : 0.2}
+                                        className="transition-all duration-300 cursor-pointer"
                                     />
                                 );
                             })}
@@ -441,56 +503,85 @@ const DeepNetSection: React.FC<Props> = ({ stats, coinData, loading, theme }) =>
                     </PieChart>
                  </ResponsiveContainer>
                  
-                 {/* Center Content for Donut */}
+                 {/* DYNAMIC Center Content */}
                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                     <span className={`text-2xl font-bold ${isCyber ? 'text-white' : 'text-zinc-200'}`}>
-                         {stats?.pools.length || 0}
-                     </span>
-                     <span className="text-[8px] text-gray-500 tracking-widest">ACTIVE POOLS</span>
+                     {activeIndex !== null && stats?.pools[activeIndex] ? (
+                         <div className="flex flex-col items-center animate-fade-in-up">
+                            <span className="text-[10px] tracking-widest text-purple-400">TARGET_LOCKED</span>
+                            <span className={`text-xl font-black ${isCyber ? 'text-white' : 'text-zinc-900'}`}>
+                                {stats.pools[activeIndex].share.toFixed(1)}%
+                            </span>
+                            <span className="text-[9px] uppercase font-bold opacity-70 mt-1 px-2 py-0.5 bg-purple-500/10 rounded border border-purple-500/30">
+                                {stats.pools[activeIndex].name}
+                            </span>
+                         </div>
+                     ) : (
+                         <div className="flex flex-col items-center opacity-60">
+                            <span className={`text-3xl font-bold ${isCyber ? 'text-white' : 'text-zinc-200'}`}>
+                                {stats?.pools.length || 0}
+                            </span>
+                            <span className="text-[8px] text-gray-500 tracking-widest mt-1">ACTIVE POOLS</span>
+                         </div>
+                     )}
                  </div>
              </div>
 
-             {/* Legend / List Side */}
+             {/* Legend / List Side - TACTICAL HUD STYLE */}
              <div className="flex flex-col justify-center">
-                 <div className={`text-xs font-bold mb-4 uppercase tracking-widest border-b pb-2 ${isCyber ? 'text-white border-gray-800' : 'text-zinc-800 border-zinc-200'}`}>
-                     DOMINANT_MINING_ENTITIES
+                 <div className={`flex justify-between items-end border-b mb-4 pb-2 ${isCyber ? 'border-gray-700' : 'border-zinc-200'}`}>
+                    <div className={`text-xs font-bold uppercase tracking-widest ${isCyber ? 'text-white' : 'text-zinc-800'}`}>
+                        DOMINANT_MINING_ENTITIES
+                    </div>
+                    <div className="text-[9px] text-gray-500">SORT BY: HASHRATE</div>
                  </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
                      {stats?.pools.slice(0, 8).map((pool, index) => {
                          const color = POOL_COLORS[index % POOL_COLORS.length];
+                         const isActive = activeIndex === index;
+                         
                          return (
                              <div 
                                 key={index} 
                                 onMouseEnter={() => setActiveIndex(index)}
                                 onMouseLeave={() => setActiveIndex(null)}
-                                className={`flex flex-col text-xs group transition-transform duration-200 hover:translate-x-1 cursor-default p-1 rounded
-                                    ${isCyber ? 'hover:bg-gray-900/50' : ''}`}
+                                className={`relative flex items-center justify-between p-2 rounded border border-l-2 transition-all duration-200 cursor-pointer overflow-hidden group/item
+                                    ${isActive 
+                                        ? (isCyber ? 'bg-gray-800 border-white border-l-purple-500 scale-[1.03] shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-zinc-200') 
+                                        : (isCyber ? 'bg-black/40 border-gray-800 border-l-transparent hover:border-gray-600' : 'bg-zinc-50 border-zinc-200')}
+                                    ${isActive && isCyber ? 'border-purple-500/50' : ''}
+                                `}
+                                style={{ borderLeftColor: isActive ? color : 'transparent' }}
                              >
-                                 <div className="flex items-center justify-between mb-1">
-                                    <div className="flex items-center gap-2">
+                                 {/* Glitch Overlay on Hover */}
+                                 {isActive && isCyber && (
+                                     <div className="absolute inset-0 bg-purple-500/10 animate-pulse pointer-events-none" />
+                                 )}
+
+                                 <div className="flex items-center gap-3 z-10">
+                                    <div className="flex flex-col items-center justify-center w-6">
                                         <div 
-                                            className="w-2 h-2 rounded-sm shadow-[0_0_5px_currentColor]" 
-                                            style={{ backgroundColor: color, color: color }}
+                                            className={`w-2 h-2 rounded-full mb-1 transition-all ${isActive ? 'animate-ping' : ''}`}
+                                            style={{ backgroundColor: color }}
                                         />
-                                        <span className={`${isCyber ? 'text-gray-300 group-hover:text-white' : 'text-zinc-600'} transition-colors font-bold`}>
+                                        <div className="h-6 w-[1px] bg-gray-800" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className={`text-[10px] font-bold uppercase ${isActive ? 'text-white' : 'text-gray-400 group-hover/item:text-gray-200'}`}>
                                             {pool.name}
                                         </span>
-                                    </div>
-                                    <div className="font-mono opacity-70 group-hover:opacity-100 group-hover:text-purple-400 transition-colors">
-                                        {pool.share.toFixed(1)}%
+                                        <div className="flex items-center gap-1">
+                                            <Wifi size={8} className={isActive ? "text-purple-400" : "text-gray-600"} />
+                                            <span className="text-[8px] text-gray-600">SIGNAL: STRONG</span>
+                                        </div>
                                     </div>
                                  </div>
-                                 
-                                 {/* Mini Data Bar */}
-                                 <div className={`w-full h-0.5 rounded-full overflow-hidden ${isCyber ? 'bg-gray-800' : 'bg-zinc-200'}`}>
-                                     <div 
-                                        className={`h-full transition-all duration-1000 ease-out group-hover:brightness-125`}
-                                        style={{ 
-                                            width: `${pool.share}%`, 
-                                            backgroundColor: color,
-                                            boxShadow: isCyber ? `0 0 5px ${color}` : 'none'
-                                        }} 
-                                     />
+
+                                 <div className="flex flex-col items-end z-10">
+                                     <span className={`font-mono font-bold transition-colors ${isActive ? 'text-purple-400' : 'text-gray-500'}`}>
+                                         {pool.share.toFixed(1)}%
+                                     </span>
+                                     {isActive && <ChevronRight size={10} className="text-white animate-bounce-x" />}
                                  </div>
                              </div>
                          )

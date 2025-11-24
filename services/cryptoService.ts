@@ -207,6 +207,9 @@ export const fetchNetworkStats = async (): Promise<NetworkStats | null> => {
         // Hashrate conversion (H/s -> EH/s)
         const hashrateEH = hashrateData.currentHashrate ? hashrateData.currentHashrate / 1_000_000_000_000_000_000 : 0;
         
+        // Average Block Time (timeAvg is in milliseconds)
+        const avgBlockTimeMinutes = diffAdjData.timeAvg ? diffAdjData.timeAvg / 60000 : 10;
+
         // Halving Calculation
         const nextHalvingBlock = 1050000;
         const blocksToGo = nextHalvingBlock - height;
@@ -246,6 +249,7 @@ export const fetchNetworkStats = async (): Promise<NetworkStats | null> => {
             difficulty: difficultyT || 0,
             nextRetarget: diffAdjData.remainingBlocks || 0,
             difficultyChange: diffAdjData.difficultyChange || 0,
+            averageBlockTime: avgBlockTimeMinutes,
             fees: {
                 fast: fees.fastestFee || 0,
                 hour: fees.hourFee || 0
@@ -271,6 +275,7 @@ export const fetchNetworkStats = async (): Promise<NetworkStats | null> => {
             difficulty: 86.4,
             nextRetarget: 1024,
             difficultyChange: 2.5,
+            averageBlockTime: 9.8,
             fees: { fast: 12, hour: 8 },
             mempool: { count: 1500, vBytes: 5000000 },
             halving: { nextBlock: 1050000, progress: 5.5, blocksToGo: 200000 },
